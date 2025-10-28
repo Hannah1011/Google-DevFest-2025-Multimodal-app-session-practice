@@ -1,0 +1,8 @@
+{
+  "name": "My Daily Sketch: AI Visual Diary",
+  "description": "An AI-powered visual diary app. Users upload a photo and record a short audio memo. The app uses AI to generate a hand-drawn sketch, write an emotional diary entry from the audio, and provide daily summaries with an emotion score.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
