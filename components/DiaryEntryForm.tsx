@@ -61,7 +61,11 @@ export const DiaryEntryForm: React.FC<DiaryEntryFormProps> = ({ onSubmit, isLoad
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
           inputAudioTranscription: {},
+          outputAudioTranscription: {},
           responseModalities: [Modality.AUDIO],
+          speechConfig: {
+              voiceConfig: {prebuiltVoiceConfig: {voiceName: 'Zephyr'}},
+          },
         },
         callbacks: {
           onopen: () => {
@@ -219,15 +223,15 @@ export const DiaryEntryForm: React.FC<DiaryEntryFormProps> = ({ onSubmit, isLoad
               )}
             </div>
             
-            <div className="bg-slate-100 rounded-lg p-4 min-h-[100px] w-full text-slate-700 font-kor">
-              {isRecording && (
-                <div className="flex items-center text-slate-500">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
-                  <span>음성 입력 중...</span>
-                </div>
-              )}
-              {transcription}
-            </div>
+            <textarea
+              value={transcription}
+              onChange={(e) => setTranscription(e.target.value)}
+              disabled={isRecording}
+              className="bg-slate-100 rounded-lg p-4 min-h-[120px] w-full text-slate-700 font-kor resize-none focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition-colors disabled:bg-slate-200 disabled:text-slate-500"
+              placeholder={isRecording ? "음성 입력 중..." : "음성 녹음 버튼을 누르거나 직접 입력하세요."}
+              rows={4}
+              aria-label="일기 내용"
+            />
           </div>
 
           <button type="submit" disabled={!photo || !transcription || isLoading} className="w-full bg-slate-800 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center">
