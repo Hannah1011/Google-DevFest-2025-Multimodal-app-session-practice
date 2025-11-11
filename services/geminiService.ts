@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { type DiaryEntry } from '../types';
+import { enqueue } from './apiQueue';
 
 let ai: GoogleGenAI;
 
@@ -47,8 +48,8 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 5, delay = 1000): Pr
 }
 
 
-export async function searchPlaces(query: string): Promise<{name: string, details: string}[]> {
-    return withRetry(async () => {
+export function searchPlaces(query: string): Promise<{name: string, details: string}[]> {
+    return enqueue(() => withRetry(async () => {
         const ai = getAi();
         const prompt = `다음 검색어와 일치하거나 비슷한 장소를 찾아주세요. 장소 이름은 반드시 한국어로 제공해주세요. 예를 들어, 숙명여대를 쳤으면, 'Sookmyung Women's University'가 아닌 숙명여자대학교로 이름이 나오도록 해주세요. 검색어: "${query}"`;
         const response = await ai.models.generateContent({
@@ -76,12 +77,12 @@ export async function searchPlaces(query: string): Promise<{name: string, detail
         // Deduplicate places by name
         const uniquePlaces = Array.from(new Map(places.map(p => [p.name, p])).values());
         return uniquePlaces;
-    });
+    }));
 }
 
 
-export async function generateDiaryEntry(transcription: string, placeName?: string): Promise<string> {
-    return withRetry(async () => {
+export function generateDiaryEntry(transcription: string, placeName?: string): Promise<string> {
+    return enqueue(() => withRetry(async () => {
         const ai = getAi();
         const prompt = placeName
             ? `다음 음성 기록과 장소("${placeName}") 정보를 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 무조건 음성 기록에 쓰인 내용 바탕으로 텍스트를 작성해야합니다. 친구에게 말하듯이 친근한 어조를 사용하고, 장소에 대한 내용을 자연스럽게 포함해 3문장으로 출력하세요. 무조건 내용만 출력해주세요. \n\n음성 기록: "${transcription}"`
@@ -94,12 +95,12 @@ export async function generateDiaryEntry(transcription: string, placeName?: stri
         });
 
         return response.text;
-    });
+    }));
 }
 
 
-export async function createImagePrompt(transcription: string): Promise<string> {
-    return withRetry(async () => {
+export function createImagePrompt(transcription: string): Promise<string> {
+    return enqueue(() => withRetry(async () => {
         const ai = getAi();
         const prompt = `다음 텍스트를 기반으로, 따뜻하고 감성적인 느낌의 손그림 스타일 이미지를 생성할 수 있는 상세한 프롬프트를 영어로 작성해줘. 피사체, 배경, 분위기, 색감, 그림 스타일을 구체적으로 묘사해야 해. 프롬프트는 "A lovely, heartwarming hand-drawn sketch of..." 로 시작해야 해.\n\n"${transcription}"`;
 
@@ -108,11 +109,11 @@ export async function createImagePrompt(transcription: string): Promise<string> 
             contents: prompt,
         });
         return response.text;
-    });
+    }));
 }
 
-export async function generateSketch(prompt: string): Promise<string> {
-    return withRetry(async () => {
+export function generateSketch(prompt: string): Promise<string> {
+    return enqueue(() => withRetry(async () => {
         const ai = getAi();
         const response = await ai.models.generateImages({
             model: 'imagen-4.0-generate-001',
@@ -127,11 +128,11 @@ export async function generateSketch(prompt: string): Promise<string> {
             throw new Error("Image generation failed, no images returned.");
         }
         return response.generatedImages[0].image.imageBytes;
-    });
+    }));
 }
 
-export async function summarizeDay(entries: DiaryEntry[]): Promise<{ summary: string; score: number }> {
-    return withRetry(async () => {
+export function summarizeDay(entries: DiaryEntry[]): Promise<{ summary: string; score: number }> {
+    return enqueue(() => withRetry(async () => {
         const ai = getAi();
         const allEntriesText = entries.map(e => `[${e.placeName || '어딘가에서'}] ${e.generatedText}`).join('\n---\n');
         const prompt = `다음은 오늘 하루 동안 작성된 여러 개의 일기 내용입니다. 이 모든 내용을 종합하여 오늘 하루를 한두 문장으로 요약하고, 전반적인 감정을 10점 만점의 '감정 스코어'로 표현해 주세요. 응답은 반드시 지정된 JSON 형식이어야 합니다:\n\n일기 내용:\n${allEntriesText}`;
@@ -160,5 +161,5 @@ export async function summarizeDay(entries: DiaryEntry[]): Promise<{ summary: st
 
         const parsed = JSON.parse(response.text);
         return parsed;
-    });
+    }));
 }

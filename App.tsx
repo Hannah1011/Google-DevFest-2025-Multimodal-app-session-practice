@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { DiaryEntryForm } from './components/DiaryEntryForm';
 import { DiaryList } from './components/DiaryList';
 import { Header } from './components/Header';
@@ -6,6 +6,7 @@ import { SummaryModal } from './components/SummaryModal';
 import { Spinner } from './components/Spinner';
 import { type DiaryEntry, type SummaryData } from './types';
 import { generateDiaryEntry, createImagePrompt, generateSketch, summarizeDay } from './services/geminiService';
+import { onQueueChange } from './services/apiQueue';
 import { fileToBase64 } from './utils/fileUtils';
 import { getFriendlyErrorMessage } from './utils/errorUtils';
 
@@ -15,6 +16,15 @@ const App: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [queueSize, setQueueSize] = useState(0);
+
+  useEffect(() => {
+    // Listen to changes in the API queue to update the UI
+    onQueueChange((active, waiting) => {
+      setQueueSize(waiting);
+    });
+  }, []);
+
 
   const handleCreateEntry = useCallback(async (photo: File, transcription: string, placeName?: string) => {
     if (!photo || !transcription.trim()) {
@@ -81,10 +91,18 @@ const App: React.FC = () => {
       setLoadingMessage('');
     }
   }, [diaryEntries]);
+  
+  const getSpinnerMessage = () => {
+    if (!isLoading) return '';
+    if (queueSize > 0) {
+      return `작업 대기 중... (내 앞에 ${queueSize}개 작업) | ${loadingMessage}`;
+    }
+    return loadingMessage;
+  };
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800">
-      {isLoading && <Spinner message={loadingMessage} />}
+      {isLoading && <Spinner message={getSpinnerMessage()} />}
       {summaryData && <SummaryModal summaryData={summaryData} onClose={() => setSummaryData(null)} />}
       <Header />
       <main className="container mx-auto p-4 md:p-8 max-w-5xl">
