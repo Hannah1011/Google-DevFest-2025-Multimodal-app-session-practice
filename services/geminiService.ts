@@ -15,7 +15,7 @@ function getAi() {
 
 export async function searchPlaces(query: string): Promise<{name: string, details: string}[]> {
     const ai = getAi();
-    const prompt = `Find places that match the following query. Provide a list of relevant locations. Query: "${query}"`;
+    const prompt = `다음 검색어와 일치하는 장소를 찾아주세요. 장소 이름은 반드시 한국어로 제공해주세요. 검색어: "${query}"`;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,

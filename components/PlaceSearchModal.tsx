@@ -1,7 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { searchPlaces } from '../services/geminiService';
 import { Icon } from './Icon';
-import { Spinner } from './Spinner';
 
 interface PlaceSearchModalProps {
   isOpen: boolean;
@@ -19,16 +18,29 @@ export const PlaceSearchModal: React.FC<PlaceSearchModalProps> = ({ isOpen, onCl
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchedQuery, setSearchedQuery] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Reset component state when it's closed from the parent
+    if (!isOpen) {
+      setQuery('');
+      setResults([]);
+      setIsSearching(false);
+      setError(null);
+      setSearchedQuery(null);
+    }
+  }, [isOpen]);
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
+    setSearchedQuery(query.trim());
     setIsSearching(true);
     setError(null);
     setResults([]);
     try {
       const places = await searchPlaces(query);
       if (places.length === 0) {
-        setError('검색 결과가 없습니다. 다른 키워드로 시도해보세요.');
+        setError('검색 결과가 없습니다. 직접 추가하거나 다른 키워드로 시도해보세요.');
       } else {
         setResults(places);
       }
@@ -42,10 +54,6 @@ export const PlaceSearchModal: React.FC<PlaceSearchModalProps> = ({ isOpen, onCl
 
   const handleSelect = (placeName: string) => {
     onSelectPlace(placeName);
-    // Reset state for next time
-    setQuery('');
-    setResults([]);
-    setError(null);
   };
 
   if (!isOpen) {
@@ -69,10 +77,10 @@ export const PlaceSearchModal: React.FC<PlaceSearchModalProps> = ({ isOpen, onCl
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="예: 서울역 스타벅스"
-            className="flex-grow border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none"
+            className="flex-grow bg-slate-100 text-slate-800 border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-400 focus:border-transparent outline-none transition-colors"
             aria-label="장소 검색"
           />
-          <button onClick={handleSearch} disabled={isSearching || !query.trim()} className="bg-slate-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-700 disabled:bg-slate-400 transition-colors">
+          <button onClick={handleSearch} disabled={isSearching || !query.trim()} className="flex-shrink-0 bg-rose-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-rose-600 disabled:bg-rose-300 transition-colors">
             <Icon name="search" className="w-5 h-5" />
           </button>
         </div>
@@ -85,6 +93,18 @@ export const PlaceSearchModal: React.FC<PlaceSearchModalProps> = ({ isOpen, onCl
           )}
           {error && <p className="text-center text-red-500 mt-8">{error}</p>}
           <ul className="space-y-2">
+            {searchedQuery && !isSearching && (
+              <li
+                key="custom-add"
+                onClick={() => handleSelect(searchedQuery)}
+                className="p-3 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors border border-dashed border-slate-300"
+              >
+                <p className="font-semibold text-slate-700 flex items-center">
+                  <Icon name="add" className="w-5 h-5 mr-2 text-rose-500" />
+                  <span>'{searchedQuery}'(으)로 장소 추가</span>
+                </p>
+              </li>
+            )}
             {results.map((place) => (
               <li key={place.name + place.details} onClick={() => handleSelect(place.name)} className="p-3 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors">
                 <p className="font-semibold text-slate-800">{place.name}</p>
