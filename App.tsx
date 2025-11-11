@@ -47,7 +47,7 @@ const App: React.FC = () => {
       const originalPhotoUrl = await fileToBase64(photo);
       const photoBase64 = originalPhotoUrl.split(',')[1];
       
-      const generatedImageBase64 = await generateSketch(photoBase64, mimeType);
+      const generatedImageBase64 = await generateSketch(photoBase64, mimeType, transcription);
       const generatedImageUrl = `data:image/jpeg;base64,${generatedImageBase64}`;
 
       const newEntry: DiaryEntry = {

@@ -90,7 +90,7 @@ export function generateDiaryEntry(transcription: string, placeName?: string): P
             음성 기록: "${transcription}"`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents: prompt,
         });
 
@@ -98,10 +98,10 @@ export function generateDiaryEntry(transcription: string, placeName?: string): P
     }));
 }
 
-export function generateSketch(photoBase64: string, mimeType: string): Promise<string> {
+export function generateSketch(photoBase64: string, mimeType: string, transcription: string): Promise<string> {
     return enqueue(() => withRetry(async () => {
         const ai = getAi();
-        const prompt = `제공된 이미지를 따뜻하고 감성적인 느낌의 손그림 스타일로 바꿔줘. 원본의 구도는 유지하되, 부드럽고 감성적인 연필이나 목탄 드로잉 스타일에 은은한 색감을 더해줘.`;
+        const prompt = `이 이미지는 내 일상의 한 장면이야. 이 사진의 전체적인 구도와 주요 피사체는 70% 정도 유지해줘. 여기에 내가 남긴 아래 음성 기록의 감정과 내용을 30% 정도 반영해서 하나의 예술적인 스케치로 재창조해줘. 예를 들어, 음성 기록이 '오늘 정말 신나는 하루였어!'라면, 그림에 활기차고 밝은 느낌을 더해주는 식이야. 따뜻하고 감성적인 손그림 스타일로 완성해줘.\n\n음성 기록: "${transcription}"`;
 
         const imagePart = {
             inlineData: {
