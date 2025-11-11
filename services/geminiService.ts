@@ -51,9 +51,9 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 5, delay = 1000): Pr
 export function searchPlaces(query: string): Promise<{name: string, details: string}[]> {
     return enqueue(() => withRetry(async () => {
         const ai = getAi();
-        const prompt = `다음 검색어와 일치하거나 비슷한 장소를 찾아주세요. 장소 이름은 반드시 한국어로 제공해주세요. 예를 들어, 숙명여대를 쳤으면, 'Sookmyung Women's University'가 아닌 숙명여자대학교로 이름이 나오도록 해주세요. 검색어: "${query}"`;
+        const prompt = `Google Maps 툴을 사용하여 다음 검색어와 정확히 일치하는 장소를 찾아주세요. 검색어를 해석하지 말고 문자 그대로 사용하세요. 검색어: "${query}"`;
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
+          model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
             tools: [{googleMaps: {}}],
@@ -101,7 +101,7 @@ export function generateDiaryEntry(transcription: string, placeName?: string): P
 export function generateSketch(photoBase64: string, mimeType: string): Promise<string> {
     return enqueue(() => withRetry(async () => {
         const ai = getAi();
-        const prompt = "제공된 이미지를 따뜻하고 감성적인 느낌의 손그림 스타일로 바꿔줘. 원본의 구도는 유지하되, 부드럽고 감성적인 연필이나 목탄 드로잉 스타일에 은은한 색감을 더해줘.";
+        const prompt = `제공된 이미지를 따뜻하고 감성적인 느낌의 손그림 스타일로 바꿔줘. 원본의 구도는 유지하되, 부드럽고 감성적인 연필이나 목탄 드로잉 스타일에 은은한 색감을 더해줘.`;
 
         const imagePart = {
             inlineData: {

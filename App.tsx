@@ -35,12 +35,16 @@ const App: React.FC = () => {
     setError(null);
 
     try {
+      const mimeType = photo.type;
+      if (!mimeType || !mimeType.startsWith('image/')) {
+        throw new Error('업로드된 파일의 이미지 타입을 확인할 수 없습니다. 다른 이미지를 사용해주세요.');
+      }
+
       setLoadingMessage('음성 기록으로 일기 생성 중...');
       const generatedText = await generateDiaryEntry(transcription, placeName);
       
       setLoadingMessage('AI 스케치를 그리는 중... (최대 1분 소요)');
       const originalPhotoUrl = await fileToBase64(photo);
-      const mimeType = photo.type;
       const photoBase64 = originalPhotoUrl.split(',')[1];
       
       const generatedImageBase64 = await generateSketch(photoBase64, mimeType);
