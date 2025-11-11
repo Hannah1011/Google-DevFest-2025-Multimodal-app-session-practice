@@ -28,7 +28,7 @@ const App: React.FC = () => {
       const diaryPromise = generateDiaryEntry(transcription, placeName);
       const imagePromptPromise = createImagePrompt(transcription);
       
-      const [{ generatedText }, imagePrompt] = await Promise.all([diaryPromise, imagePromptPromise]);
+      const [generatedText, imagePrompt] = await Promise.all([diaryPromise, imagePromptPromise]);
 
       setLoadingMessage('AI 스케치를 그리는 중... (최대 1분 소요)');
       const generatedImageBase64 = await generateSketch(imagePrompt);

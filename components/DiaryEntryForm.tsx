@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
+// import { GoogleGenAI} from '@google/genai'; 
 import type { LiveServerMessage } from '@google/genai';
 import { Icon } from './Icon';
 import { PlaceSearchModal } from './PlaceSearchModal';
@@ -61,11 +62,7 @@ export const DiaryEntryForm: React.FC<DiaryEntryFormProps> = ({ onSubmit, isLoad
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
           inputAudioTranscription: {},
-          outputAudioTranscription: {},
           responseModalities: [Modality.AUDIO],
-          speechConfig: {
-              voiceConfig: {prebuiltVoiceConfig: {voiceName: 'Zephyr'}},
-          },
         },
         callbacks: {
           onopen: () => {

@@ -15,7 +15,7 @@ function getAi() {
 
 export async function searchPlaces(query: string): Promise<{name: string, details: string}[]> {
     const ai = getAi();
-    const prompt = `다음 검색어와 일치하는 장소를 찾아주세요. 장소 이름은 반드시 한국어로 제공해주세요. 검색어: "${query}"`;
+    const prompt = `다음 검색어와 일치하거나 비슷한 장소를 찾아주세요. 장소 이름은 반드시 한국어로 제공해주세요. 예를 들어, 숙명여대를 쳤으면, 'Sookmyung Women's University'가 아닌 숙명여자대학교로 이름이 나오도록 해주세요. 검색어: "${query}"`;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
@@ -43,18 +43,19 @@ export async function searchPlaces(query: string): Promise<{name: string, detail
 }
 
 
-export async function generateDiaryEntry(transcription: string, placeName?: string): Promise<{ generatedText: string; }> {
+export async function generateDiaryEntry(transcription: string, placeName?: string): Promise<string> {
     const ai = getAi();
     const prompt = placeName
-        ? `다음 음성 기록과 장소("${placeName}") 정보를 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 친구에게 말하듯이 친근한 어조를 사용하고, 장소에 대한 내용을 자연스럽게 포함해 주세요 (1~3 문장).\n\n음성 기록: "${transcription}"`
-        : `다음 음성 기록을 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 친구에게 말하듯이 친근한 어조를 사용해 주세요 (1~3 문장).\n\n음성 기록: "${transcription}"`;
+        ? `다음 음성 기록과 장소("${placeName}") 정보를 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 무조건 음성 기록에 쓰인 내용 바탕으로 텍스트를 작성해야합니다. 친구에게 말하듯이 친근한 어조를 사용하고, 장소에 대한 내용을 자연스럽게 포함해 3문장으로 출력하세요. 무조건 내용만 출력해주세요. \n\n음성 기록: "${transcription}"`
+        : `다음 음성 기록을 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 친구에게 말하듯이 친근한 어조를 사용해서 3문장만 출력하세요.
+        음성 기록: "${transcription}"`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
         contents: prompt,
     });
 
-    return { generatedText: response.text };
+    return response.text;
 }
 
 
