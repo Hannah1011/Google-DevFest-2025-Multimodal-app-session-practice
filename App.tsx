@@ -5,7 +5,7 @@ import { Header } from './components/Header';
 import { SummaryModal } from './components/SummaryModal';
 import { Spinner } from './components/Spinner';
 import { type DiaryEntry, type SummaryData } from './types';
-import { generateDiaryEntry, createImagePrompt, generateSketch, summarizeDay } from './services/geminiService';
+import { generateDiaryEntry, generateSketch, summarizeDay } from './services/geminiService';
 import { onQueueChange } from './services/apiQueue';
 import { fileToBase64 } from './utils/fileUtils';
 import { getFriendlyErrorMessage } from './utils/errorUtils';
@@ -38,19 +38,18 @@ const App: React.FC = () => {
       setLoadingMessage('음성 기록으로 일기 생성 중...');
       const generatedText = await generateDiaryEntry(transcription, placeName);
       
-      setLoadingMessage('스케치 프롬프트 생성 중...');
-      const imagePrompt = await createImagePrompt(transcription);
-
       setLoadingMessage('AI 스케치를 그리는 중... (최대 1분 소요)');
-      const generatedImageBase64 = await generateSketch(imagePrompt);
+      const originalPhotoUrl = await fileToBase64(photo);
+      const mimeType = photo.type;
+      const photoBase64 = originalPhotoUrl.split(',')[1];
+      
+      const generatedImageBase64 = await generateSketch(photoBase64, mimeType);
       const generatedImageUrl = `data:image/jpeg;base64,${generatedImageBase64}`;
-
-      const photoUrl = await fileToBase64(photo);
 
       const newEntry: DiaryEntry = {
         id: new Date().toISOString(),
         date: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }),
-        originalPhotoUrl: photoUrl,
+        originalPhotoUrl: originalPhotoUrl,
         transcription,
         generatedText,
         generatedImageUrl,

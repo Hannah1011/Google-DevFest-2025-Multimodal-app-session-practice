@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { type DiaryEntry } from '../types';
 import { enqueue } from './apiQueue';
 
@@ -98,36 +98,37 @@ export function generateDiaryEntry(transcription: string, placeName?: string): P
     }));
 }
 
-
-export function createImagePrompt(transcription: string): Promise<string> {
+export function generateSketch(photoBase64: string, mimeType: string): Promise<string> {
     return enqueue(() => withRetry(async () => {
         const ai = getAi();
-        const prompt = `다음 텍스트를 기반으로, 따뜻하고 감성적인 느낌의 손그림 스타일 이미지를 생성할 수 있는 상세한 프롬프트를 영어로 작성해줘. 피사체, 배경, 분위기, 색감, 그림 스타일을 구체적으로 묘사해야 해. 프롬프트는 "A lovely, heartwarming hand-drawn sketch of..." 로 시작해야 해.\n\n"${transcription}"`;
+        const prompt = "제공된 이미지를 따뜻하고 감성적인 느낌의 손그림 스타일로 바꿔줘. 원본의 구도는 유지하되, 부드럽고 감성적인 연필이나 목탄 드로잉 스타일에 은은한 색감을 더해줘.";
+
+        const imagePart = {
+            inlineData: {
+                data: photoBase64,
+                mimeType: mimeType,
+            },
+        };
+        
+        const textPart = {
+            text: prompt
+        };
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
+          model: 'gemini-2.5-flash-image',
+          contents: { parts: [imagePart, textPart] },
+          config: {
+              responseModalities: [Modality.IMAGE],
+          },
         });
-        return response.text;
-    }));
-}
 
-export function generateSketch(prompt: string): Promise<string> {
-    return enqueue(() => withRetry(async () => {
-        const ai = getAi();
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: prompt,
-            config: {
-                numberOfImages: 1,
-                aspectRatio: "16:9"
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return part.inlineData.data;
             }
-        });
-
-        if (response.generatedImages.length === 0) {
-            throw new Error("Image generation failed, no images returned.");
         }
-        return response.generatedImages[0].image.imageBytes;
+        
+        throw new Error("Image generation failed, no image data returned in the response.");
     }));
 }
 
