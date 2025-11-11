@@ -9,6 +9,7 @@ interface QueuedTask {
 const queue: QueuedTask[] = [];
 let activeRequests = 0;
 const MAX_CONCURRENCY = 2;
+const REQUEST_DELAY = 1000; // 1 second delay between requests
 
 let onQueueChangeCallback: (active: number, waiting: number) => void = () => {};
 
@@ -40,7 +41,11 @@ async function processQueue() {
   } finally {
     activeRequests--;
     notifyQueueChange();
-    processQueue(); // Process the next item
+    
+    // Wait for the specified delay before processing the next item in the queue.
+    setTimeout(() => {
+        processQueue();
+    }, REQUEST_DELAY);
   }
 }
 

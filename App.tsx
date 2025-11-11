@@ -35,11 +35,11 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      setLoadingMessage('음성 기록으로 일기 및 스케치 프롬프트 생성 중...');
-      const diaryPromise = generateDiaryEntry(transcription, placeName);
-      const imagePromptPromise = createImagePrompt(transcription);
+      setLoadingMessage('음성 기록으로 일기 생성 중...');
+      const generatedText = await generateDiaryEntry(transcription, placeName);
       
-      const [generatedText, imagePrompt] = await Promise.all([diaryPromise, imagePromptPromise]);
+      setLoadingMessage('스케치 프롬프트 생성 중...');
+      const imagePrompt = await createImagePrompt(transcription);
 
       setLoadingMessage('AI 스케치를 그리는 중... (최대 1분 소요)');
       const generatedImageBase64 = await generateSketch(imagePrompt);
@@ -95,7 +95,7 @@ const App: React.FC = () => {
   const getSpinnerMessage = () => {
     if (!isLoading) return '';
     if (queueSize > 0) {
-      return `작업 대기 중... (내 앞에 ${queueSize}개 작업) | ${loadingMessage}`;
+      return `작업 대기 중... (내 앞에 ${queueSize}개 작업)`;
     }
     return loadingMessage;
   };
