@@ -74,7 +74,7 @@ export const DiaryEntryForm: React.FC<DiaryEntryFormProps> = ({ onSubmit, isLoad
             const audioContext = audioContextRef.current;
 
             mediaStreamSourceRef.current = audioContext.createMediaStreamSource(stream);
-            scriptProcessorRef.current = audioContext.createScriptProcessor(4096, 1, 1);
+            scriptProcessorRef.current = audioContext.createScriptProcessor(2048, 1, 1);
 
             scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
                 const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
@@ -115,7 +115,17 @@ export const DiaryEntryForm: React.FC<DiaryEntryFormProps> = ({ onSubmit, isLoad
       });
     } catch (error) {
       console.error('Failed to start recording:', error);
-      alert("마이크 접근 권한이 필요합니다.");
+      let message = '마이크를 시작하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      if (error instanceof DOMException) {
+          if (error.name === 'NotAllowedError') {
+              message = '마이크 접근 권한이 거부되었습니다. 브라우저 설정에서 이 사이트의 마이크 권한을 허용해주세요.';
+          } else if (error.name === 'NotFoundError') {
+              message = '사용 가능한 마이크를 찾을 수 없습니다. 마이크가 컴퓨터에 제대로 연결되었는지 확인해주세요.';
+          } else if (error.name === 'NotReadableError') {
+              message = '마이크 하드웨어 오류가 발생했습니다. 다른 프로그램이 마이크를 사용하고 있지는 않은지 확인 후 다시 시도해주세요.';
+          }
+      }
+      alert(message);
       setIsRecording(false);
     }
   }, [cleanupAudio]);

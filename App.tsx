@@ -7,6 +7,7 @@ import { Spinner } from './components/Spinner';
 import { type DiaryEntry, type SummaryData } from './types';
 import { generateDiaryEntry, createImagePrompt, generateSketch, summarizeDay } from './services/geminiService';
 import { fileToBase64 } from './utils/fileUtils';
+import { getFriendlyErrorMessage } from './utils/errorUtils';
 
 const App: React.FC = () => {
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
@@ -49,7 +50,7 @@ const App: React.FC = () => {
       setDiaryEntries(prevEntries => [newEntry, ...prevEntries]);
     } catch (err) {
       console.error(err);
-      setError('일기 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -74,7 +75,7 @@ const App: React.FC = () => {
       setSummaryData(summary);
     } catch (err) {
       console.error(err);
-      setError('요약 생성 중 오류가 발생했습니다.');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');

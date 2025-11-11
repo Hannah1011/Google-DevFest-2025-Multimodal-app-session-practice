@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { searchPlaces } from '../services/geminiService';
 import { Icon } from './Icon';
+import { getFriendlyErrorMessage } from '../utils/errorUtils';
 
 interface PlaceSearchModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const PlaceSearchModal: React.FC<PlaceSearchModalProps> = ({ isOpen, onCl
       }
     } catch (e) {
       console.error(e);
-      setError('장소 검색 중 오류가 발생했습니다.');
+      setError(getFriendlyErrorMessage(e));
     } finally {
       setIsSearching(false);
     }
