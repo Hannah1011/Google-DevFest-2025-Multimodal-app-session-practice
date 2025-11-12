@@ -76,8 +76,8 @@ export function generateDiaryEntry(transcription: string, placeName?: string): P
     return enqueue(() => withRetry(async () => {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
         const prompt = placeName
-            ? `다음 음성 기록과 장소("${placeName}") 정보를 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 무조건 음성 기록에 쓰인 내용 바탕으로 텍스트를 작성해야합니다. 친구에게 말하듯이 친근한 어조를 사용하고, 장소에 대한 내용을 자연스럽게 포함해 3문장으로 출력하세요. 무조건 내용만 출력해주세요. \n\n음성 기록: "${transcription}"`
-            : `다음 음성 기록을 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 친구에게 말하듯이 친근한 어조를 사용해서 3문장만 출력하세요.
+            ? `다음 음성 기록과 장소("${placeName}") 정보를 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 무조건 음성 기록에 쓰인 내용 바탕으로 텍스트를 작성해야합니다. 친근한 어조를 사용하고, 장소에 대한 내용을 자연스럽게 포함해 3문장으로 출력하세요. 주체는 내가 되어야 합니다. 그리고 무조건 해당 음성기록을 변환한 내용만 출력해주세요. \n\n음성 기록: "${transcription}"`
+            : `다음 음성 기록을 바탕으로 짧고 감성적인 일기 텍스트를 작성해 주세요. 친근한 어조를 사용해서 3문장만 출력하세요. 주체는 내가 되어야 합니다. 
             음성 기록: "${transcription}"`;
 
         const response = await ai.models.generateContent({
