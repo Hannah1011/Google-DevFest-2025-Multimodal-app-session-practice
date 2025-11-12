@@ -113,13 +113,28 @@ export function generateSketch(photoBase64: string, mimeType: string, transcript
           },
         });
 
-        for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                return part.inlineData.data;
-            }
+        const parts = response.candidates?.[0]?.content?.parts;
+        const imagePartData = parts?.find(part => part.inlineData?.data)?.inlineData?.data;
+
+        if (imagePartData) {
+            return imagePartData;
+        }
+
+        // If no image is found, provide a more detailed error
+        const finishReason = response.candidates?.[0]?.finishReason;
+        const safetyRatings = response.candidates?.[0]?.safetyRatings;
+        
+        if (finishReason === 'SAFETY') {
+            const blockedRating = safetyRatings?.find(rating => rating.blocked);
+            const category = blockedRating?.category || 'Unknown';
+            throw new Error(`이미지 생성이 안전상의 이유로 차단되었습니다. (사유: ${category}). 프롬프트나 이미지를 수정하여 다시 시도해주세요.`);
+        }
+
+        if (finishReason) {
+            throw new Error(`이미지 생성에 실패했습니다. (사유: ${finishReason})`);
         }
         
-        throw new Error("Image generation failed, no image data returned in the response.");
+        throw new Error("이미지 생성에 실패했습니다. AI 모델로부터 이미지 데이터를 받지 못했습니다.");
     }));
 }
 
